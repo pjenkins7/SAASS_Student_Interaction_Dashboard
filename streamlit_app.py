@@ -77,12 +77,12 @@ if uploaded_file is not None:
 
     summary_stats = pd.DataFrame([
         {
-            "Metric": "Total Students (|S|)",
+            "Metric": "Total Students",
             "Description": "Total number of unique students in the dataset",
             "Value": len(students)
         },
         {
-            "Metric": "Total Courses (|C|)",
+            "Metric": "Total Courses",
             "Description": "Total number of distinct courses represented",
             "Value": df[course_col].nunique()
         },
@@ -93,7 +93,7 @@ if uploaded_file is not None:
         },
         {
             "Metric": "Max Distinct Interactions",
-            "Description": "Most unique students paired with by any student (max possible = 44)",
+            "Description": "Most unique students paired with by any student",
             "Value": int(distinct_interactions.max())
         },
         {
@@ -113,7 +113,7 @@ if uploaded_file is not None:
         },
         {
             "Metric": "Students Fully Paired",
-            "Description": "Number of students who interacted with all others (44 peers)",
+            "Description": "Number of students who interacted with all others",
             "Value": fully_paired
         }
     ])
