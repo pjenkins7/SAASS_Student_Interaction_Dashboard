@@ -121,16 +121,9 @@ if uploaded_file is not None:
     st.markdown("### 📋 Summary Statistics")
     st.table(summary_stats)
 
-    # --- Download interaction matrix ---
-    st.download_button(
-        label="📥 Download Interaction Matrix CSV",
-        data=interaction_matrix.to_csv().encode('utf-8'),
-        file_name='interaction_matrix.csv',
-        mime='text/csv'
-    )
 
 # --- Individual Student Interaction Viewer ---
-st.markdown("### 👤 View Individual Student Interactions")
+st.markdown("### View Individual Student Interactions")
 
 selected_student = st.selectbox("Select a student:", students)
 
@@ -143,9 +136,6 @@ if selected_student:
 
     st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
 
-    # Display as table
-    st.write("#### Students Paired With:")
-    st.dataframe(paired_students.rename("Times Paired"))
 
     # Optional: small bar chart
     fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
