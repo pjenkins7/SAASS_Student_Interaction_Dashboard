@@ -144,7 +144,6 @@ if uploaded_file is not None:
         # Table of actual pairings only (hide zeros)
         paired_students = all_pairings[all_pairings > 0].sort_values(ascending=False)
         st.write("#### Students Paired With:")
-        st.dataframe(paired_students.rename("Times Paired"))
     
         # Determine color based on whether they were paired
         colors = ['coral' if count > 0 else 'lightgray' for count in all_pairings]
