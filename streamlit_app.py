@@ -123,32 +123,50 @@ if uploaded_file is not None:
 
     # --- Individual Student Interaction Viewer ---
     st.markdown("### View Individual Student Interactions")
-
+    
     # Add a blank option
     student_options = ["Select a student..."] + students
     selected_student = st.selectbox("Select a student:", student_options)
-
+    
     if selected_student != "Select a student...":
         st.subheader(f"Interactions for {selected_student}")
-
-        # Who they’ve interacted with (and how many times)
-        paired_students = interaction_matrix.loc[selected_student]
-        paired_students = paired_students[paired_students > 0].sort_values(ascending=False)
-
-        st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
-
-        # Horizontal bar chart with annotations
-        fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
-        paired_students.sort_values().plot(kind='barh', ax=ax, color='coral')
+    
+        # All other students (excluding self)
+        others = [s for s in students if s != selected_student]
+    
+        # Extract full row (including zeros) for the selected student
+        all_pairings = interaction_matrix.loc[selected_student, others].sort_values()
+    
+        # Summary metric
+        distinct_partners = sum(all_pairings > 0)
+        st.markdown(f"**Total distinct students paired with:** {distinct_partners}")
+    
+        # Table of actual pairings only (hide zeros)
+        paired_students = all_pairings[all_pairings > 0].sort_values(ascending=False)
+        st.write("#### Students Paired With:")
+        st.dataframe(paired_students.rename("Times Paired"))
+    
+        # Determine color based on whether they were paired
+        colors = ['coral' if count > 0 else 'lightgray' for count in all_pairings]
+    
+        # Horizontal bar chart with zero and nonzero interactions
+        fig, ax = plt.subplots(figsize=(8, max(4, len(all_pairings) * 0.25)))
+        bars = ax.barh(all_pairings.index, all_pairings.values, color=colors)
         ax.set_xlabel("Times Paired")
         ax.set_title(f"Pairing Frequency for {selected_student}")
-        for bar in ax.patches:
+    
+        for bar in bars:
             width = bar.get_width()
             ax.annotate(f'{int(width)}',
                         xy=(width, bar.get_y() + bar.get_height() / 2),
                         xytext=(3, 0), textcoords="offset points",
                         ha='left', va='center')
+    
         st.pyplot(fig)
+    
+    else:
+        st.info("👆 Select a student to see their individual interaction data.")
+
 
 else:
     st.info("👆 Please upload a CSV file to get started!")
