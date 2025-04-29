@@ -121,6 +121,38 @@ if uploaded_file is not None:
     st.markdown("### Summary Statistics")
     st.table(summary_stats)
 
+    # --- Distribution of Pairing Counts ---
+    st.markdown("### 📈 Distribution of Pairing Counts")
+    
+    # Get upper triangle only (no repeats, no self-pairings)
+    pair_counts = interaction_matrix.where(np.triu(np.ones(interaction_matrix.shape), k=1).astype(bool)).stack()
+    
+    fig, ax = plt.subplots(figsize=(10,6))
+    pair_counts.value_counts().sort_index().plot(kind='bar', ax=ax, color='mediumseagreen')
+    ax.set_xlabel("Number of Times Paired")
+    ax.set_ylabel("Number of Student Pairs")
+    ax.set_title("Distribution of Student Pairings Across the Year")
+    st.pyplot(fig)
+
+    # --- Course Groupings Viewer ---
+    st.markdown("### 📚 View Groupings by Course")
+    
+    selected_course = st.selectbox("Select a course to view groupings:", sorted(df[course_col].unique()))
+    
+    if selected_course:
+        st.subheader(f"Groupings for Course {selected_course}")
+        course_data = df[df[course_col] == selected_course]
+    
+        groups = course_data[group_col].dropna().unique()
+        groups = sorted(groups)
+    
+        for group in groups:
+            group_members = course_data[course_data[group_col] == group][student_col].tolist()
+            st.markdown(f"**Group {int(group)}**")
+            st.write(group_members)
+    else:
+        st.info("👆 Select a course to see student groupings.")
+
     # --- Individual Student Interaction Viewer ---
     st.markdown("### View Individual Student Interactions")
     
