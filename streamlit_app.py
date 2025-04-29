@@ -129,5 +129,31 @@ if uploaded_file is not None:
         mime='text/csv'
     )
 
+# --- Individual Student Interaction Viewer ---
+st.markdown("### 👤 View Individual Student Interactions")
+
+selected_student = st.selectbox("Select a student:", students)
+
+if selected_student:
+    st.subheader(f"Interactions for {selected_student}")
+
+    # Who they’ve interacted with (and how many times)
+    paired_students = interaction_matrix.loc[selected_student]
+    paired_students = paired_students[paired_students > 0].sort_values(ascending=False)
+
+    st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
+
+    # Display as table
+    st.write("#### Students Paired With:")
+    st.dataframe(paired_students.rename("Times Paired"))
+
+    # Optional: small bar chart
+    fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
+    paired_students.sort_values().plot(kind='barh', ax=ax, color='coral')
+    ax.set_xlabel("Times Paired")
+    ax.set_title(f"Pairing Frequency for {selected_student}")
+    st.pyplot(fig)
+
+
 else:
     st.info("👆 Please upload a CSV file to get started!")
