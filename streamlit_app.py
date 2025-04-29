@@ -118,7 +118,7 @@ if uploaded_file is not None:
         }
     ])
 
-    st.markdown("### 📋 Summary Statistics")
+    st.markdown("### Summary Statistics")
     st.table(summary_stats)
 
     # --- Individual Student Interaction Viewer ---
@@ -136,8 +136,6 @@ if uploaded_file is not None:
         paired_students = paired_students[paired_students > 0].sort_values(ascending=False)
 
         st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
-        st.write("#### Students Paired With:")
-        st.dataframe(paired_students.rename("Times Paired"))
 
         # Horizontal bar chart with annotations
         fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
