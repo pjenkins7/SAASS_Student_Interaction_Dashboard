@@ -12,7 +12,7 @@ uploaded_file = st.file_uploader("Upload your SAASS Groupings CSV", type=['csv']
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Define fixed column names
+    # Define column names
     student_col = 'Student'
     course_col = 'Course'
     group_col = 'Group'
@@ -20,7 +20,7 @@ if uploaded_file is not None:
     students = sorted(df[student_col].unique())
     interaction_matrix = pd.DataFrame(0, index=students, columns=students)
 
-    # Build symmetric interaction matrix
+    # Build interaction matrix (total co-groupings)
     for course in df[course_col].unique():
         course_data = df[df[course_col] == course]
         for group in course_data[group_col].dropna().unique():
@@ -30,51 +30,98 @@ if uploaded_file is not None:
                     interaction_matrix.loc[members[i], members[j]] += 1
                     interaction_matrix.loc[members[j], members[i]] += 1
 
-    # Prepare heatmap matrix (with diagonal set to NaN)
+    # Heatmap preparation
     heatmap_matrix = interaction_matrix.copy()
     for i in range(len(heatmap_matrix)):
-        heatmap_matrix.iloc[i, i] = np.nan
+        heatmap_matrix.iloc[i, i] = np.nan  # Use NaN to later place 'X'
 
     st.markdown("### 🔥 Heatmap of Student Interactions")
     fig, ax = plt.subplots(figsize=(12, 10))
     sns.heatmap(heatmap_matrix, cmap="Reds", annot=True, fmt=".0f", linewidths=0.5, linecolor='gray', ax=ax,
-                cbar_kws={'label': 'Interactions'})
+                cbar_kws={'label': 'Total Interactions'})
     for i in range(len(students)):
         ax.text(i + 0.5, i + 0.5, "X", ha='center', va='center', color='black', fontsize=9)
     plt.xticks(rotation=45, ha='right')
     st.pyplot(fig)
 
-    # Compute total interactions per student (sum of row, excluding self)
-    total_interactions = interaction_matrix.sum(axis=1)
+    # --- Distinct interactions ---
+    pairwise_partners = {student: set() for student in students}
+    for course in df[course_col].unique():
+        course_data = df[df[course_col] == course]
+        for group in course_data[group_col].dropna().unique():
+            members = course_data[course_data[group_col] == group][student_col].tolist()
+            for i in range(len(members)):
+                for j in range(len(members)):
+                    if i != j:
+                        pairwise_partners[members[i]].add(members[j])
+    distinct_interactions = pd.Series({s: len(partners) for s, partners in pairwise_partners.items()})
+    distinct_interactions = distinct_interactions.sort_values()
 
-    st.markdown("### 📈 Total Interactions per Student")
-    fig, ax = plt.subplots(figsize=(12, 6))
-    bars = ax.bar(total_interactions.index, total_interactions.values)
-    ax.set_ylabel("Total Interactions")
-    ax.set_xlabel("Student")
-    plt.xticks(rotation=45, ha='right')
+    # --- Horizontal bar chart ---
+    st.markdown("### 📊 Distinct Student Pairings (Max: 44)")
+    fig, ax = plt.subplots(figsize=(10, 12))
+    bars = ax.barh(distinct_interactions.index, distinct_interactions.values, color='skyblue')
+    ax.set_xlabel("Number of Distinct Students Paired With")
+    ax.set_xlim(0, 44)
     for bar in bars:
-        height = bar.get_height()
-        ax.annotate(f'{int(height)}', xy=(bar.get_x() + bar.get_width() / 2, height),
-                    xytext=(0, 3), textcoords="offset points", ha='center', va='bottom')
+        width = bar.get_width()
+        ax.annotate(f'{int(width)}', xy=(width, bar.get_y() + bar.get_height() / 2),
+                    xytext=(3, 0), textcoords="offset points", ha='left', va='center')
     st.pyplot(fig)
 
-    # Compute summary statistics
-    summary_stats = {
-        "Total Students (|S|)": len(students),
-        "Total Courses (|C|)": df[course_col].nunique(),
-        "Groups per Course (|G|)": df[group_col].nunique(),
-        "Min Interactions by Student": int(total_interactions.min()),
-        "Max Interactions by Student": int(total_interactions.max()),
-        "Average Interactions by Student": round(total_interactions.mean(), 1),
-        "Median Interactions by Student": int(total_interactions.median()),
-        "Students Fully Paired (met everyone)": sum(total_interactions == (len(students) - 1) * df[course_col].nunique()),
-    }
-    summary_df = pd.DataFrame(summary_stats.items(), columns=["Metric", "Value"])
-    st.markdown("### 📋 Summary Statistics")
-    st.table(summary_df)
+    # --- Summary statistics ---
+    mean_val = round(distinct_interactions.mean(), 1)
+    median_val = int(distinct_interactions.median())
+    std_val = round(distinct_interactions.std(ddof=0), 2)
+    fully_paired = sum(distinct_interactions == len(students) - 1)
 
-    # Download button
+    summary_stats = pd.DataFrame([
+        {
+            "Metric": "Total Students (|S|)",
+            "Description": "Total number of unique students in the dataset",
+            "Value": len(students)
+        },
+        {
+            "Metric": "Total Courses (|C|)",
+            "Description": "Total number of distinct courses represented",
+            "Value": df[course_col].nunique()
+        },
+        {
+            "Metric": "Min Distinct Interactions",
+            "Description": "Fewest unique students paired with by any student",
+            "Value": int(distinct_interactions.min())
+        },
+        {
+            "Metric": "Max Distinct Interactions",
+            "Description": "Most unique students paired with by any student (max possible = 44)",
+            "Value": int(distinct_interactions.max())
+        },
+        {
+            "Metric": "Average Distinct Interactions",
+            "Description": "Mean number of unique pairings per student",
+            "Value": mean_val
+        },
+        {
+            "Metric": "Median Distinct Interactions",
+            "Description": "Middle value of distinct pairings across all students",
+            "Value": median_val
+        },
+        {
+            "Metric": "Std Dev of Distinct Interactions",
+            "Description": "Standard deviation of unique pairings",
+            "Value": std_val
+        },
+        {
+            "Metric": "Students Fully Paired",
+            "Description": "Number of students who interacted with all others (44 peers)",
+            "Value": fully_paired
+        }
+    ])
+
+    st.markdown("### 📋 Summary Statistics")
+    st.table(summary_stats)
+
+    # --- Download interaction matrix ---
     st.download_button(
         label="📥 Download Interaction Matrix CSV",
         data=interaction_matrix.to_csv().encode('utf-8'),
