@@ -122,7 +122,7 @@ if uploaded_file is not None:
     st.table(summary_stats)
 
     # --- Distribution of Pairing Counts ---
-    st.markdown("### 📈 Distribution of Pairing Counts")
+    st.markdown("### Distribution of Pairing Counts")
     
     # Get upper triangle only (no repeats, no self-pairings)
     pair_counts = interaction_matrix.where(np.triu(np.ones(interaction_matrix.shape), k=1).astype(bool)).stack()
@@ -135,7 +135,7 @@ if uploaded_file is not None:
     st.pyplot(fig)
 
     # --- Course Groupings Viewer ---
-    st.markdown("### 📚 View Groupings by Course")
+    st.markdown("### View Groupings by Course")
     
     selected_course = st.selectbox("Select a course to view groupings:", sorted(df[course_col].unique()))
     
