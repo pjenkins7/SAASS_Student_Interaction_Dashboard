@@ -124,18 +124,29 @@ if uploaded_file is not None:
     # --- Distribution of Pairing Counts ---
     st.markdown("### Distribution of Pairing Counts")
     
-    # Get upper triangle only (no repeats, no self-pairings)
+    # Only upper triangle (no self-pairings or duplicates)
     pair_counts = interaction_matrix.where(np.triu(np.ones(interaction_matrix.shape), k=1).astype(bool)).stack()
+    distribution = pair_counts.value_counts().sort_index()
     
-    fig, ax = plt.subplots(figsize=(10,6))
-    pair_counts.value_counts().sort_index().plot(kind='bar', ax=ax, color='mediumseagreen')
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.bar(distribution.index.astype(str), distribution.values, color='mediumseagreen')
     ax.set_xlabel("Number of Times Paired")
     ax.set_ylabel("Number of Student Pairs")
     ax.set_title("Distribution of Student Pairings Across the Year")
+    
+    # Annotate each bar with value
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{int(height)}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3), textcoords="offset points",
+                    ha='center', va='bottom')
+    
     st.pyplot(fig)
 
+
     # --- Course Groupings Viewer ---
-    st.markdown("### 📚 View Groupings by Course")
+    st.markdown("### View Groupings by Course")
     
     course_options = ["Select a course..."] + sorted(df[course_col].unique())
     selected_course = st.selectbox("Select a course to view groupings:", course_options)
