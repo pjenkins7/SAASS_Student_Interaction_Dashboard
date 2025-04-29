@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 st.set_page_config(layout="wide")
-st.title('📚 Student Interaction Dashboard')
+st.title('SAASS Student Interaction Dashboard')
 
 uploaded_file = st.file_uploader("Upload your SAASS Groupings CSV", type=['csv'])
 
@@ -35,7 +35,7 @@ if uploaded_file is not None:
     for i in range(len(heatmap_matrix)):
         heatmap_matrix.iloc[i, i] = np.nan  # Use NaN to later place 'X'
 
-    st.markdown("### 🔥 Heatmap of Student Interactions")
+    st.markdown("### Heatmap of Student Interactions")
     fig, ax = plt.subplots(figsize=(12, 10))
     sns.heatmap(heatmap_matrix, cmap="Reds", annot=True, fmt=".0f", linewidths=0.5, linecolor='gray', ax=ax,
                 cbar_kws={'label': 'Total Interactions'})
@@ -122,7 +122,7 @@ if uploaded_file is not None:
     st.table(summary_stats)
 
     # --- Individual Student Interaction Viewer ---
-    st.markdown("### 👤 View Individual Student Interactions")
+    st.markdown("### View Individual Student Interactions")
 
     # Add a blank option
     student_options = ["Select a student..."] + students
