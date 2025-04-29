@@ -135,16 +135,15 @@ if uploaded_file is not None:
     st.pyplot(fig)
 
     # --- Course Groupings Viewer ---
-    st.markdown("### View Groupings by Course")
+    st.markdown("### 📚 View Groupings by Course")
     
-    selected_course = st.selectbox("Select a course to view groupings:", sorted(df[course_col].unique()))
+    course_options = ["Select a course..."] + sorted(df[course_col].unique())
+    selected_course = st.selectbox("Select a course to view groupings:", course_options)
     
-    if selected_course:
+    if selected_course != "Select a course...":
         st.subheader(f"Groupings for Course {selected_course}")
         course_data = df[df[course_col] == selected_course]
-    
-        groups = course_data[group_col].dropna().unique()
-        groups = sorted(groups)
+        groups = sorted(course_data[group_col].dropna().unique())
     
         for group in groups:
             group_members = course_data[course_data[group_col] == group][student_col].tolist()
