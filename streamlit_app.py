@@ -58,7 +58,7 @@ if uploaded_file is not None:
     distinct_interactions = distinct_interactions.sort_values()
 
     # --- Horizontal bar chart ---
-    st.markdown("### 📊 Distinct Student Pairings (Max: 44)")
+    st.markdown("### Distinct Student Pairings")
     fig, ax = plt.subplots(figsize=(10, 12))
     bars = ax.barh(distinct_interactions.index, distinct_interactions.values, color='skyblue')
     ax.set_xlabel("Number of Distinct Students Paired With")
@@ -121,45 +121,36 @@ if uploaded_file is not None:
     st.markdown("### 📋 Summary Statistics")
     st.table(summary_stats)
 
+    # --- Individual Student Interaction Viewer ---
+    st.markdown("### 👤 View Individual Student Interactions")
 
-# --- Individual Student Interaction Viewer ---
-st.markdown("### View Individual Student Interactions")
+    # Add a blank option
+    student_options = ["Select a student..."] + students
+    selected_student = st.selectbox("Select a student:", student_options)
 
-# Add a blank option
-student_options = ["Select a student..."] + students
-selected_student = st.selectbox("Select a student:", student_options)
+    if selected_student != "Select a student...":
+        st.subheader(f"Interactions for {selected_student}")
 
-if selected_student != "Select a student...":
-    st.subheader(f"Interactions for {selected_student}")
+        # Who they’ve interacted with (and how many times)
+        paired_students = interaction_matrix.loc[selected_student]
+        paired_students = paired_students[paired_students > 0].sort_values(ascending=False)
 
-    # Who they’ve interacted with (and how many times)
-    paired_students = interaction_matrix.loc[selected_student]
-    paired_students = paired_students[paired_students > 0].sort_values(ascending=False)
+        st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
+        st.write("#### Students Paired With:")
+        st.dataframe(paired_students.rename("Times Paired"))
 
-    st.markdown(f"**Total distinct students paired with:** {len(paired_students)}")
-
-    st.write("#### Students Paired With:")
-    st.dataframe(paired_students.rename("Times Paired"))
-
-    # Horizontal bar chart with labels
-    fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
-    paired_students.sort_values().plot(kind='barh', ax=ax, color='coral')
-    ax.set_xlabel("Times Paired")
-    ax.set_title(f"Pairing Frequency for {selected_student}")
-
-    for bar in ax.patches:
-        width = bar.get_width()
-        ax.annotate(f'{int(width)}',
-                    xy=(width, bar.get_y() + bar.get_height() / 2),
-                    xytext=(3, 0), textcoords="offset points",
-                    ha='left', va='center')
-
-    st.pyplot(fig)
-
-else:
-    st.info("👆 Select a student to see their individual interaction data.")
-
-
+        # Horizontal bar chart with annotations
+        fig, ax = plt.subplots(figsize=(8, max(4, len(paired_students) * 0.25)))
+        paired_students.sort_values().plot(kind='barh', ax=ax, color='coral')
+        ax.set_xlabel("Times Paired")
+        ax.set_title(f"Pairing Frequency for {selected_student}")
+        for bar in ax.patches:
+            width = bar.get_width()
+            ax.annotate(f'{int(width)}',
+                        xy=(width, bar.get_y() + bar.get_height() / 2),
+                        xytext=(3, 0), textcoords="offset points",
+                        ha='left', va='center')
+        st.pyplot(fig)
 
 else:
     st.info("👆 Please upload a CSV file to get started!")
