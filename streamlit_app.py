@@ -158,7 +158,8 @@ if uploaded_file is not None:
     
         for group in groups:
             group_members = course_data[course_data[group_col] == group][student_col].tolist()
-            st.markdown(f"**Group {int(group)}**")
+            # st.markdown(f"**Group {int(group)}**")
+            st.markdown(f"**Group {group}**")
             st.write(group_members)
     else:
         st.info("👆 Select a course to see student groupings.")
